@@ -1,10 +1,18 @@
 <html>
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            #marble {
+                position: absolute;
+            }
+        </style>
     </head>
     <body>
-        <div>
-            <button id='request-permission'>start</button>
+        <div id="marble">
+            O
+        </div>
+        <div id="request-permission-container">
+            <button id='request-permission'>start marble time!</button>
         </div>
         <div id='coords-x'></div>
         <div id='coords-y'></div>
@@ -17,6 +25,7 @@
             .then(permissionState => {
                 if (permissionState === 'granted') {
                     window.addEventListener('devicemotion', deviceMotionHandler);
+                    document.getElementById('request-permission').style = "display: none";
                 }
             })
             .catch(console.error);
@@ -25,14 +34,32 @@
         }
     }
 
-    const coordsDiv = document.getElementById('coords');
+    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
+    const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
+    const MULTIPLIER = 5;
+
+    const marble = document.getElementById('marble');
+    marble.style = `left: ${vw/2}; top: ${vh/2}`;
     const deviceMotionHandler = e => {
         const { x, y, z } = e.acceleration;
-        if (Math.abs(x) > 1 || Math.abs(y) > 1 || Math.abs(z) > 1) {
-            document.getElementById('coords-x').innerHTML = `x: ${x}`;
-            document.getElementById('coords-y').innerHTML = `y: ${y}`
-            document.getElementById('coords-z').innerHTML = `z: ${z}`
+        document.getElementById('coords-x').innerHTML = `x: ${x}`;
+        document.getElementById('coords-y').innerHTML = `y: ${y}`
+        document.getElementById('coords-z').innerHTML = `z: ${z}`
+
+        const current = marble.getBoundingClientRect();
+        let newX = current.x - x * MULTIPLIER;
+        if (newX < 0) {
+            newX = vw;
+        } else if (newX > vw) {
+            newX = 0;
         }
+        let newY = current.y - y * MULTIPLIER;
+        if (newY < 0) {
+            newY = vh;
+        } else if (newY > vh) {
+            newY = 0;
+        }
+        marble.style = `left: ${newX}; top: ${newY}`;
     }
     </script>
 </html>
