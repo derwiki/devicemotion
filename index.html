@@ -91,39 +91,55 @@
     var maxX = garden.clientWidth  - ball.clientWidth;
     var maxY = garden.clientHeight - ball.clientHeight;
 
+    const states = {
+        TILT_FORWARD: 'tilt_forward',
+        TILT_BACK: 'tilt_back',
+        TILT_LEFT: 'tilt_left',
+        TILT_RIGHT: 'tilt_right',
+        NEUTRAL: 'neutral'
+    }
+
+    const THRESHOLD = 15;
+    const THRESHOLD_X = THRESHOLD;
+    const THRESHOLD_Y = THRESHOLD;
+
+    const currentState = (x, y) => {
+        const neutral_x = x > -1 * THRESHOLD_X && x < THRESHOLD_X;
+        const neutral_y = y > -1 * THRESHOLD_Y && y < THRESHOLD_Y;
+        const tiltForward = x < -1 * THRESHOLD_X;
+        const tiltBack = x > THRESHOLD_X;
+        const tiltLeft = y < -1 * THRESHOLD_Y;
+        const tiltRight = y > THRESHOLD_Y;
+
+        if (neutral_x && neutral_y) return states.NEUTRAL;
+        else if (tiltLeft) return states.TILT_LEFT;
+        else if (tiltRight) return states.TILT_RIGHT;
+        else if (tiltForward) return states.TILT_FORWARD;
+        else if (tiltBack) return states.TILT_BACK;
+    }
+
     function handleOrientation(event) {
-    var x = event.beta;  // In degree in the range [-180,180)
-    var y = event.gamma; // In degree in the range [-90,90)
+        var x = event.beta;  // In degree in the range [-180,180)
+        var y = event.gamma; // In degree in the range [-90,90)
 
-    output.textContent  = `beta : ${x}\n`;
-    output.textContent += `gamma: ${y}\n`;
+        output.textContent  = `beta : ${x}\n`;
+        output.textContent += `gamma: ${y}\n`;
+        output.textContent += `currentState: ${currentState(x, y)}\n`;
 
-    if (x < -10) {
-        console.log('tilt forward');
-    } else if (x > 10) {
-        console.log('tilt back');
-    }
+        // Because we don't want to have the device upside down
+        // We constrain the x value to the range [-90,90]
+        if (x >  90) { x =  90};
+        if (x < -90) { x = -90};
 
-    if (y < -15) {
-        console.log('tilt left');
-    } else if (y > 15) {
-        console.log('tilt right');
-    }
+        // To make computation easier we shift the range of
+        // x and y to [0,180]
+        x += 90;
+        y += 90;
 
-    // Because we don't want to have the device upside down
-    // We constrain the x value to the range [-90,90]
-    if (x >  90) { x =  90};
-    if (x < -90) { x = -90};
-
-    // To make computation easier we shift the range of
-    // x and y to [0,180]
-    x += 90;
-    y += 90;
-
-    // 10 is half the size of the ball
-    // It center the positioning point to the center of the ball
-    ball.style.top  = (maxY*y/180 - 10) + "px";
-    ball.style.left = (maxX*x/180 - 10) + "px";
+        // 10 is half the size of the ball
+        // It center the positioning point to the center of the ball
+        ball.style.top  = (maxY*y/180 - 10) + "px";
+        ball.style.left = (maxX*x/180 - 10) + "px";
     }
 
     window.addEventListener('deviceorientation', handleOrientation);
